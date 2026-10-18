@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会員QR読み取り</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+body{font-family:sans-serif;text-align:center;padding:20px;background:#f7f7f7}
+button{font-size:18px;padding:14px 20px;border:0;border-radius:10px;background:#222;color:white}
+#reader{max-width:400px;margin:20px auto}
+#message{margin:20px}
+</style>
+</head>
+<body>
+<h2>にゃるらとほてぷ</h2>
+<p>会員QRを読み取ってください</p>
+<div id="reader"></div>
+<p id="message">下のボタンを押してカメラを起動してください</p>
+<button id="start">カメラを起動</button>
+<script>
+const STAFF_URL = 'https://script.google.com/macros/s/AKfycbwb-YJRjSVwOCiQTKRy0oIpjZu58zrtV0IGSSO9ONrZMWdC4QDOKOErTpaclkRd4dxp/exec?staff=1';
+
+document.getElementById('start').onclick = async function() {
+  const message = document.getElementById('message');
+  if (!window.Html5Qrcode) {
+    message.textContent = '読み取り機能を読み込めません。ページを再読み込みしてください。';
+    return;
+  }
+  this.disabled = true;
+  const scanner = new Html5Qrcode('reader');
+  try {
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 230, height: 230 } },
+      async function(text) {
+        try { await scanner.stop(); } catch(e) {}
+        message.textContent = '読み取り成功。スタッフ画面を開いています…';
+        location.href = STAFF_URL + '&token=' + encodeURIComponent(text.trim());
+      },
+      function() {}
+    );
+    message.textContent = '会員QRを枠内に映してください';
+  } catch(e) {
+    message.textContent = 'カメラを起動できません：' + (e.message || e);
+    document.getElementById('start').disabled = false;
+  }
+};
+</script>
+</body>
+</html>
